@@ -1,0 +1,35 @@
+name: hungry
+description: "A new Flutter project."
+publish_to: 'none'
+version: 0.1.0
+
+environment:
+  sdk: ^3.8.1
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_feather_icons: ^2.0.0+1
+  flutter_riverpod: ^3.0.0
+  get: ^4.7.2
+  google_fonts: ^6.3.1
+  device_preview: ^1.3.1
+  firebase_auth: ^6.0.0
+  firebase_core: ^4.0.0
+  cloud_firestore: ^6.0.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/back.gif
+    - assets/test.jpg
+    - assets/download.jpg
+    - assets/Midjourney.jpg
+    - assets/don.jpg
+    - assets/top.jpg
+    - assets/lime.jpg
