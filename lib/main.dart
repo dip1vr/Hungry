@@ -46,7 +46,7 @@ class MyApp extends StatelessWidget {
         textTheme: GoogleFonts.latoTextTheme(),
       ),
       home: Scaffold(
-        body: Dash()
+        body: DeliveryLoginPage()
       ),
     );
   }
