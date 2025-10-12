@@ -1,22 +1,27 @@
 import 'dart:ui';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:hungry/auth/login.dart';
+import 'package:get/get.dart';
+import 'package:hungry/pages/cartpage.dart';
+import 'package:hungry/pages/orderUI.dart';
+// Import CartPage
 
 // Constants for reusability
 const kPrimaryOrange = Color(0xFFFF8C00);
 const kSecondaryOrange = Color(0xFFFF4E50);
 const kCardWidth = 380.0;
-const kSmallCardWidth = 190.0;
-const kSmallCardHeight = 100.0; // Corrected typo from kSmallCardheight
+const kSmallCardWidth = 180.0;
+const kSmallCardHeight = 100.0;
 const kImageHeight = 180.0;
 const kOfferCardHeight = 220.0;
-const kLightBlueBackground = Color.fromRGBO(135, 206, 250, 0.6); // For QuickActionCard (Track Order)
-const kGreenBackground = Color.fromRGBO(144, 238, 144, 0.9); // For QuickActionCard (Reorder)
-const kRedBackground = Color.fromRGBO(255, 245, 238, 0.9); // For QuickActionCard (Favorites)
-const kYellowBackground = Color.fromRGBO(255, 255, 224, 0.9); // For QuickActionCard (Offers)
+const kLightBlueBackground = Color.fromRGBO(135, 206, 250, 0.6);
+const kGreenBackground = Color.fromRGBO(144, 238, 144, 0.9);
+const kRedBackground = Color.fromRGBO(255, 245, 238, 0.9);
+const kYellowBackground = Color.fromRGBO(255, 255, 224, 0.9);
 
-// Reusable badge widget
+// Reusable badge widget (unchanged)
 class Badge extends StatelessWidget {
   final String text;
   final Color color;
@@ -58,58 +63,7 @@ class Badge extends StatelessWidget {
   }
 }
 
-// Reusable food category card widget
-class FoodCategoryCard extends StatelessWidget {
-  final String title;
-  final String emoji;
-  final Color borderColor;
-
-  const FoodCategoryCard({
-    super.key,
-    required this.title,
-    required this.emoji,
-    this.borderColor = Colors.black54,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        side: BorderSide(color: borderColor.withOpacity(0.3), width: 2),
-        borderRadius: BorderRadius.circular(30),
-      ),
-      color: Colors.white.withOpacity(0.2),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(30),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: Container(
-            width: 80,
-            padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 3),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(emoji, style: const TextStyle(fontSize: 20)),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// Reusable image card widget
+// Reusable image card widget (unchanged)
 class ImageCard extends StatelessWidget {
   final String title;
   final String imageUrl;
@@ -123,7 +77,6 @@ class ImageCard extends StatelessWidget {
       width: 80,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white, width: 2),
         image: DecorationImage(
           image: NetworkImage(imageUrl),
           fit: BoxFit.cover,
@@ -154,7 +107,7 @@ class ImageCard extends StatelessWidget {
   }
 }
 
-// Reusable quick action card widget
+// Reusable quick action card widget (unchanged)
 class QuickActionCard extends StatelessWidget {
   final String title;
   final String subtitle;
@@ -177,20 +130,18 @@ class QuickActionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       width: kSmallCardWidth,
-      height: kSmallCardHeight, // Enforce height
+      height: kSmallCardHeight,
       child: Card(
-        color: backgroundColor, // Use pre-defined semi-transparent color
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        color: backgroundColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         elevation: 2,
-        clipBehavior: Clip.hardEdge, // Clip overflowing content
+        clipBehavior: Clip.hardEdge,
         child: Padding(
-          padding: const EdgeInsets.all(16.0), // Reduced padding to fit height
+          padding: const EdgeInsets.all(16.0),
           child: Row(
             children: [
               Container(
-                height: 42, // Reduced icon size to fit height
+                height: 42,
                 width: 42,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(21),
@@ -200,29 +151,29 @@ class QuickActionCard extends StatelessWidget {
                     end: Alignment.bottomRight,
                   ),
                 ),
-                child: Icon(icon, color: Colors.white, size: 16), // Smaller icon
+                child: Icon(icon, color: Colors.white, size: 16),
               ),
               const SizedBox(width: 8),
-              Expanded( // Use Expanded to prevent overflow
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min, // Minimize vertical space
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
                       title,
                       style: const TextStyle(
                         color: Colors.black87,
                         fontWeight: FontWeight.bold,
-                        fontSize: 14, // Reduced font size
+                        fontSize: 14,
                       ),
-                      overflow: TextOverflow.ellipsis, // Handle long text
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 2), // Reduced spacing
+                    const SizedBox(height: 2),
                     Text(
                       subtitle,
                       style: const TextStyle(
                         color: Colors.black54,
-                        fontSize: 12, // Reduced font size
+                        fontSize: 12,
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -237,7 +188,7 @@ class QuickActionCard extends StatelessWidget {
   }
 }
 
-// Reusable offer card widget
+// Reusable offer card widget (unchanged)
 class OfferCard extends StatelessWidget {
   final String title;
   final String subtitle;
@@ -346,7 +297,7 @@ class OfferCard extends StatelessWidget {
   }
 }
 
-// Reusable restaurant card widget
+// Reusable restaurant card widget (unchanged)
 class RestaurantCard extends StatelessWidget {
   final String name;
   final String category;
@@ -372,9 +323,8 @@ class RestaurantCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-            spreadRadius: 2,
+            color: Colors.white.withOpacity(0.5),
+            
             offset: const Offset(0, 4),
           ),
         ],
@@ -526,7 +476,7 @@ class Dash extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Header Section
+                // Header Section (unchanged)
                 Container(
                   decoration: const BoxDecoration(
                     borderRadius: BorderRadius.vertical(
@@ -774,38 +724,10 @@ class Dash extends StatelessWidget {
                           ],
                         ),
                       ),
-                      const SizedBox(height: 20),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            "Popular: ",
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.black54,
-                            ),
-                          ),
-                          const FoodCategoryCard(
-                            title: "Pizza",
-                            emoji: "🍕",
-                            borderColor: Colors.black54,
-                          ),
-                          const FoodCategoryCard(
-                            title: "Burger",
-                            emoji: "🍔",
-                            borderColor: Colors.green,
-                          ),
-                          const FoodCategoryCard(
-                            title: "Pasta",
-                            emoji: "🍝",
-                            borderColor: Colors.pink,
-                          ),
-                        ],
-                      ),
                     ],
                   ),
                 ),
-                // What's on Your Mind Section
+                // What's on Your Mind Section (unchanged)
                 Padding(
                   padding: const EdgeInsets.all(12.0),
                   child: Row(
@@ -866,7 +788,7 @@ class Dash extends StatelessWidget {
                     ),
                   ),
                 ),
-                // Quick Action Section
+                // Quick Action Section (unchanged)
                 const Padding(
                   padding: EdgeInsets.all(18.0),
                   child: Text(
@@ -917,7 +839,7 @@ class Dash extends StatelessWidget {
                     ),
                   ],
                 ),
-                // Special Offers Section
+                // Special Offers Section (unchanged)
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Row(
@@ -952,7 +874,7 @@ class Dash extends StatelessWidget {
                   imageUrl:
                       "https://plus.unsplash.com/premium_photo-1678283974882-a00a67c542a9?q=80&w=880&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
                 ),
-                // Popular Near You Section
+                // Popular Near You Section (unchanged)
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: Row(
@@ -976,18 +898,36 @@ class Dash extends StatelessWidget {
                   physics: const BouncingScrollPhysics(),
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.all(8),
-                  child: Row(
-                    children: const [
-                      RestaurantCard(
-                        name: "Bella Vista",
-                        category: "Italian • Pizza",
-                        imageUrl:
-                            "https://images.unsplash.com/photo-1504674900247-0877df9cc836",
-                        deliveryTime: "25-30 min",
-                        rating: 4.8,
-                      ),
-                      // Add more RestaurantCard widgets here as needed
-                    ],
+                  child: StreamBuilder<QuerySnapshot>(
+                    stream: FirebaseFirestore.instance
+                        .collection("restaurants")
+                        .snapshots(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                      if (snapshot.hasData == snapshot.data!.docs.isEmpty) {
+                        return const Center(
+                          child: Text("No Restaurants Available"),
+                        );
+                      }
+                      final restaurants = snapshot.data!.docs;
+                      return Row(
+                        children: restaurants.map((doc) {
+                          final data = doc.data() as Map<String, dynamic>;
+
+                          return RestaurantCard(
+                            name: data['restaurantName'] ?? "Unknown",
+                            category: data['cuisineType'] ?? "No Category",
+                            imageUrl:
+                                data['imageUrl'] ??
+                                "https://images.unsplash.com/photo-1504674900247-0877df9cc836",
+                            deliveryTime: data['prepairTime'] ?? "20-30 min",
+                            rating: (data['rating'] ?? 4.5).toDouble(),
+                          );
+                        }).toList(),
+                      );
+                    },
                   ),
                 ),
                 const Padding(
@@ -997,15 +937,34 @@ class Dash extends StatelessWidget {
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                 ),
-                SizedBox(
-                  height: 800,
-                  child: FoodHomePage(),
-                ),
+                // Integrate FoodList here
+                const FoodList(),
               ],
             ),
           ),
         ),
       ),
+      floatingActionButton: Obx(() {
+        final controller = Get.find<FoodController>();
+        return controller.cartItems.isNotEmpty
+            ? FloatingActionButton.extended(
+                onPressed: () {
+                  Get.to(() => CartPage());
+                },
+                backgroundColor: Colors.green.withOpacity(0.9),
+                label: Text(
+                  "${controller.cartItems.length} Item${controller.cartItems.length > 1 ? 's' : ''} | ₹${controller.totalPrice.toStringAsFixed(2)}",
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                icon: const Icon(Icons.shopping_cart, color: Colors.white),
+              )
+            : const SizedBox.shrink();
+      }),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 }
