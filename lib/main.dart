@@ -5,8 +5,6 @@ import 'package:get/get_navigation/get_navigation.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:hungry/auth/login.dart';
-import 'package:hungry/pages/dashbord.dart' hide FoodHomePage;
-
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,7 +17,8 @@ void main() async {
         messagingSenderId: "1066214452856",
         projectId: "deliveryapp-b595e",
         storageBucket: "deliveryapp-b595e.firebasestorage.app",
-        databaseURL: "https://deliveryapp-b595e-default-rtdb.firebaseio.com", // ✅ added
+        databaseURL:
+            "https://deliveryapp-b595e-default-rtdb.firebaseio.com", // ✅ added
       ),
     );
     print("✅ Firebase Initialized Successfully!");
@@ -42,12 +41,8 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        textTheme: GoogleFonts.latoTextTheme(),
-      ),
-      home: Scaffold(
-        body: DeliveryLoginPage()
-      ),
+      theme: ThemeData(textTheme: GoogleFonts.latoTextTheme()),
+      home: Scaffold(body: DeliveryLoginPage()),
     );
   }
 }

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:hungry/pages/dashbord.dart';
-import 'package:hungry/profile_widget/profile.dart';
+import 'package:hungry/features/dashboard/dashboard_page.dart';
+import 'package:hungry/features/profile/profile_page.dart';
+
 class BottomNavController extends GetxController {
   var selectedIndex = 0.obs;
 
@@ -16,7 +17,7 @@ class BottomNavPage extends StatelessWidget {
   final BottomNavController controller = Get.put(BottomNavController());
 
   final List<Widget> pages = [
-    const Dash(),       // Home
+    const DashboardPage(), // Home
     // OrderUI(),          // Orders Page
     // CartPage(),         // Cart Page
     ProfilePage(),
@@ -37,10 +38,7 @@ class BottomNavPage extends StatelessWidget {
           unselectedItemColor: Colors.grey,
           showUnselectedLabels: true,
           items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home),
-              label: "Home",
-            ),
+            BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
             BottomNavigationBarItem(
               icon: Icon(Icons.receipt_long),
               label: "Orders",
@@ -49,10 +47,7 @@ class BottomNavPage extends StatelessWidget {
               icon: Icon(Icons.shopping_cart),
               label: "Cart",
             ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person),
-              label: "Profile",
-            ),
+            BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
           ],
         ),
       );

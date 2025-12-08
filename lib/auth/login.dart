@@ -5,7 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:hungry/auth/signup.dart';
-import 'package:hungry/pages/bottom_nav.dart';
+import 'package:hungry/features/dashboard/dashboard_page.dart';
 
 class DeliveryLoginPage extends StatefulWidget {
   const DeliveryLoginPage({super.key});
@@ -73,6 +73,27 @@ class _DeliveryLoginPageState extends State<DeliveryLoginPage>
     super.dispose();
   }
 
+  // SnackBar helper function for smooth floating snackbars
+  void _showStyledSnackBar(
+    BuildContext context,
+    String message, {
+    bool isError = false,
+  }) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          message,
+          style: GoogleFonts.poppins(color: Colors.white, fontSize: 14),
+        ),
+        backgroundColor: isError ? Colors.redAccent : Colors.green,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        duration: const Duration(seconds: 3),
+      ),
+    );
+  }
+
   Future<void> _loginUser() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
@@ -85,34 +106,42 @@ class _DeliveryLoginPageState extends State<DeliveryLoginPage>
             );
 
         // Login success
-        Get.snackbar(
-          "Login Successful",
-          "Welcome back, ${credential.user?.email ?? 'Delivery Boy'}!",
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
+        _showStyledSnackBar(
+          context,
+          "Welcome back, ${credential.user?.displayName ?? 'User'}!",
         );
 
-        Get.offAll(() => BottomNavPage());
+        Get.offAll(() => const DashboardPage());
       } on FirebaseAuthException catch (e) {
         String message;
         switch (e.code) {
           case 'user-not-found':
-            message = 'User not registered. Please sign up first.';
+          case 'invalid-email':
+            message = 'No user found with this email.';
             break;
           case 'wrong-password':
-            message = 'Password is incorrect.';
+          case 'invalid-credential':
+            message = 'Incorrect password or email.';
+            break;
+          case 'user-disabled':
+            message = 'This account has been disabled.';
+            break;
+          case 'too-many-requests':
+            message = 'Too many failed attempts. Try again later.';
+            break;
+          case 'network-request-failed':
+            message = 'Network error. Check your connection.';
             break;
           default:
             message = e.message ?? 'Login failed. Please try again.';
         }
 
-        Get.snackbar(
-          "Login Failed",
-          message,
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
+        _showStyledSnackBar(context, message, isError: true);
+      } catch (e) {
+        _showStyledSnackBar(
+          context,
+          "An unexpected error occurred",
+          isError: true,
         );
       } finally {
         setState(() => _isLoading = false);

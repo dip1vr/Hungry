@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:firebase_auth/firebase_auth.dart'; 
-import 'package:hungry/pages/dashbord.dart';
-
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:hungry/features/dashboard/dashboard_page.dart';
 
 class Signup extends StatefulWidget {
   const Signup({super.key});
@@ -39,17 +38,16 @@ class _SignupState extends State<Signup> with SingleTickerProviderStateMixin {
   void initState() {
     super.initState();
 
-    _controller = AnimationController(
-      vsync: this,
-      duration: Duration(seconds: 5),
-    )..addStatusListener((status) {
-        if (status == AnimationStatus.completed) {
-          setState(() {
-            index = (index + 1) % gradientColors.length;
+    _controller =
+        AnimationController(vsync: this, duration: Duration(seconds: 5))
+          ..addStatusListener((status) {
+            if (status == AnimationStatus.completed) {
+              setState(() {
+                index = (index + 1) % gradientColors.length;
+              });
+              _startAnimation();
+            }
           });
-          _startAnimation();
-        }
-      });
 
     _startAnimation();
   }
@@ -81,7 +79,11 @@ class _SignupState extends State<Signup> with SingleTickerProviderStateMixin {
   }
 
   // SnackBar helper function for smooth floating snackbars like login page
-  void _showStyledSnackBar(BuildContext context, String message, {bool isError = false}) {
+  void _showStyledSnackBar(
+    BuildContext context,
+    String message, {
+    bool isError = false,
+  }) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
@@ -90,9 +92,7 @@ class _SignupState extends State<Signup> with SingleTickerProviderStateMixin {
         ),
         backgroundColor: isError ? Colors.redAccent : Colors.green,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         margin: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         duration: Duration(seconds: 3),
       ),
@@ -151,7 +151,7 @@ class _SignupState extends State<Signup> with SingleTickerProviderStateMixin {
               gradient: LinearGradient(
                 colors: [
                   _color1.value ?? Colors.purple,
-                  _color2.value ?? Colors.pink
+                  _color2.value ?? Colors.pink,
                 ],
                 begin: Alignment.bottomLeft,
                 end: Alignment.topRight,
@@ -293,21 +293,27 @@ class _SignupState extends State<Signup> with SingleTickerProviderStateMixin {
                             onPressed: () async {
                               if (_formKey.currentState!.validate()) {
                                 try {
-                                  final credential = await FirebaseAuth
-                                      .instance
+                                  final credential = await FirebaseAuth.instance
                                       .createUserWithEmailAndPassword(
-                                    email: emailController.text.trim(),
-                                    password: passwordController.text.trim(),
-                                  );
+                                        email: emailController.text.trim(),
+                                        password: passwordController.text
+                                            .trim(),
+                                      );
 
                                   await credential.user?.updateDisplayName(
-                                      nameController.text.trim());
+                                    nameController.text.trim(),
+                                  );
 
-                                  _showStyledSnackBar(context, 'Sign up successful!');
+                                  _showStyledSnackBar(
+                                    context,
+                                    'Sign up successful!',
+                                  );
 
                                   Navigator.pushReplacement(
                                     context,
-                                    MaterialPageRoute(builder: (_) => Dash()),
+                                    MaterialPageRoute(
+                                      builder: (_) => DashboardPage(),
+                                    ),
                                   );
                                 } on FirebaseAuthException catch (e) {
                                   String message = 'Signup failed';
@@ -317,14 +323,30 @@ class _SignupState extends State<Signup> with SingleTickerProviderStateMixin {
                                     message = 'Invalid email';
                                   } else if (e.code == 'weak-password') {
                                     message = 'Weak password';
-                                  } else if (e.code == 'operation-not-allowed') {
+                                  } else if (e.code ==
+                                      'operation-not-allowed') {
                                     message =
                                         'Email/password accounts are not enabled';
+                                  } else if (e.code ==
+                                      'network-request-failed') {
+                                    message =
+                                        'Network error. Check your connection.';
+                                  } else if (e.code == 'too-many-requests') {
+                                    message =
+                                        'Too many attempts. Try again later.';
                                   }
 
-                                  _showStyledSnackBar(context, message, isError: true);
+                                  _showStyledSnackBar(
+                                    context,
+                                    message,
+                                    isError: true,
+                                  );
                                 } catch (e) {
-                                  _showStyledSnackBar(context, 'Something went wrong: $e', isError: true);
+                                  _showStyledSnackBar(
+                                    context,
+                                    'Something went wrong: $e',
+                                    isError: true,
+                                  );
                                 }
                               }
                             },
