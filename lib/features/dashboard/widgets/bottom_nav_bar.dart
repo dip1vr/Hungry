@@ -27,14 +27,17 @@ class BottomNavBarWidget extends StatelessWidget {
           ),
         ],
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          _buildNavItem(Icons.home_rounded, "Home", 0),
-          _buildNavItem(Icons.restaurant_menu_rounded, "Dining", 1),
-          _buildNavItem(Icons.local_offer_rounded, "Offers", 2),
-          _buildNavItem(Icons.favorite_rounded, "Likes", 3),
-        ],
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            _buildNavItem(Icons.home_rounded, "Home", 0),
+            _buildNavItem(Icons.restaurant_menu_rounded, "Dining", 1),
+            _buildNavItem(Icons.favorite_rounded, "Offers", 2),
+            _buildNavItem(Icons.person_rounded, "Profile", 3),
+          ],
+        ),
       ),
     );
   }

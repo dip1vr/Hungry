@@ -1,38 +1,30 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:hungry/features/dashboard/controllers/dashboard_controller.dart';
 import 'package:hungry/features/dashboard/widgets/food_item_card.dart';
 import 'package:hungry/features/dashboard/widgets/food_item_skeleton.dart';
+import 'package:hungry/features/dashboard/widgets/restaurant_card.dart';
 import 'package:hungry/features/order/controllers/food_controller.dart';
 
-class RecommendedSection extends StatelessWidget {
-  const RecommendedSection({super.key});
+class RecommendedSectionSliver extends StatelessWidget {
+  const RecommendedSectionSliver({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildSectionTitle("Recommended for You"),
-        const SizedBox(height: 20),
+    final DashboardController controller = Get.find();
 
-        // Firebase StreamBuilder for food items
-        StreamBuilder<QuerySnapshot>(
-          stream: FirebaseFirestore.instance
-              .collectionGroup("menuItems")
-              .snapshots(),
-          builder: (context, snapshot) {
-            if (snapshot.hasError) {
-              return Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(32.0),
-                  child: Text("Error: ${snapshot.error}"),
-                ),
-              );
-            }
+    return Obx(() {
+      final items = controller.recommendedItems;
 
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return Column(
+      if (items.isEmpty) {
+        // Show Skeleton in a SliverList
+        return SliverToBoxAdapter(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildSectionTitle("Recommended for You"),
+              SizedBox(height: 20),
+              Column(
                 children: List.generate(
                   3,
                   (index) => Padding(
@@ -43,30 +35,90 @@ class RecommendedSection extends StatelessWidget {
                     child: FoodItemSkeleton(),
                   ),
                 ),
-              );
-            }
+              ),
+            ],
+          ),
+        );
+      }
 
-            if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-              return const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(32.0),
-                  child: Text("No food items available"),
-                ),
-              );
-            }
+      return SliverMainAxisGroup(
+        slivers: [
+          SliverToBoxAdapter(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildSectionTitle("Recommended for You"),
+                SizedBox(height: 20),
+              ],
+            ),
+          ),
+          SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (context, index) {
+                final int foodCount = items.length;
+                final int totalContentCount = foodCount + (foodCount ~/ 5);
 
-            final foodDocs = snapshot.data!.docs;
+                if (index >= totalContentCount) {
+                  // Loading indicator at the bottom
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16.0,
+                      vertical: 24.0,
+                    ),
+                    child: Center(child: FoodItemSkeleton()),
+                  );
+                }
 
-            return ListView.separated(
-              shrinkWrap: true,
-              physics: NeverScrollableScrollPhysics(),
-              padding: EdgeInsets.symmetric(horizontal: 16),
-              itemCount: foodDocs.length,
-              separatorBuilder: (_, __) => SizedBox(height: 24),
-              itemBuilder: (context, index) {
-                final foodData =
-                    foodDocs[index].data() as Map<String, dynamic>? ?? {};
-                final vendorRef = foodDocs[index].reference.parent.parent;
+                final foodItems = items;
+                final restaurants = controller.featuredRestaurants;
+
+                // Logic: Insert a restaurant after every 5 food items.
+                bool isRestaurantSlot = (index + 1) % 6 == 0;
+
+                if (isRestaurantSlot && restaurants.isNotEmpty) {
+                  // Calculate which restaurant to show (cycle through logic)
+                  final int restaurantIndex = (index ~/ 6) % restaurants.length;
+                  final doc = restaurants[restaurantIndex];
+                  final data = doc.data() as Map<String, dynamic>;
+
+                  final restaurantData = {
+                    'name': data['restaurantName'] ?? 'Unknown',
+                    'cuisine': data['cuisineType'] ?? 'No Category',
+                    'rating': (data['rating'] ?? 4.5).toString(),
+                    'time': data['prepairTime'] ?? '20-30 min',
+                    'offer': 'Suggested for you',
+                    'featured': false,
+                    'fast': true,
+                    'tags': ['Recommended'],
+                    'img':
+                        data['imageUrl'] ??
+                        'https://images.unsplash.com/photo-1504674900247-0877df9cc836',
+                  };
+
+                  return Padding(
+                    padding: const EdgeInsets.only(
+                      bottom: 24,
+                      left: 16,
+                      right: 16,
+                    ),
+                    child: RepaintBoundary(
+                      child: RestaurantCard(
+                        data: restaurantData,
+                        restaurantId: doc.id,
+                      ),
+                    ),
+                  );
+                }
+
+                // It is a food item
+                final int numRestaurantsBefore = index ~/ 6;
+                final int foodIndex = index - numRestaurantsBefore;
+
+                if (foodIndex >= foodItems.length) return SizedBox.shrink();
+
+                final foodDoc = foodItems[foodIndex];
+                final foodData = foodDoc.data() as Map<String, dynamic>? ?? {};
+                final vendorRef = foodDoc.reference.parent.parent;
                 final vendorId = vendorRef?.id ?? "unknown";
 
                 // Map Firebase data to our card format
@@ -83,35 +135,49 @@ class RecommendedSection extends StatelessWidget {
                   'bestseller': (foodData['rating'] ?? 0) >= 4.5,
                 };
 
-                return RepaintBoundary(
-                  child: FoodItemCard(
-                    data: foodItem,
-                    onAdd: () {
-                      // Add to cart
-                      final controller = Get.put(FoodController());
-                      final cartItem = {
-                        "title": foodData['name'] ?? 'Unknown Dish',
-                        "desc": foodData['description'] ?? 'No description',
-                        "price": foodData['price'] ?? 0,
-                        "oldPrice": (foodData['price'] ?? 0) + 50,
-                        "time": "20-30 min",
-                        "cal": "350 cal",
-                        "tags": [foodData['category'] ?? "Other"],
-                        "rating": foodData['rating'] ?? 4.5,
-                        "imageUrl": foodData['imageUrl'],
-                        "quantity": 1,
-                        "vendorId": vendorId,
-                      };
-                      controller.addToCart(cartItem);
-                    },
+                return Padding(
+                  padding: const EdgeInsets.only(
+                    bottom: 24,
+                    left: 16,
+                    right: 16,
+                  ),
+                  child: RepaintBoundary(
+                    // isolate repaints
+                    child: FoodItemCard(
+                      data: foodItem,
+                      onAdd: () {
+                        final cartController = Get.put(
+                          FoodController(),
+                        ); // Ensure existing instance
+                        final cartItem = {
+                          "title": foodData['name'] ?? 'Unknown Dish',
+                          "desc": foodData['description'] ?? 'No description',
+                          "price": foodData['price'] ?? 0,
+                          "oldPrice": (foodData['price'] ?? 0) + 50,
+                          "time": "20-30 min",
+                          "cal": "350 cal",
+                          "tags": [foodData['category'] ?? "Other"],
+                          "rating": foodData['rating'] ?? 4.5,
+                          "imageUrl": foodData['imageUrl'],
+                          "quantity": 1,
+                          "vendorId": vendorId,
+                        };
+                        cartController.addToCart(cartItem);
+                      },
+                    ),
                   ),
                 );
               },
-            );
-          },
-        ),
-      ],
-    );
+              // Child Count Calculation
+              // Total content + 1 for loader if hasMore is true
+              childCount:
+                  (items.length + (items.length ~/ 5)) +
+                  (controller.hasMore.value ? 1 : 0),
+            ),
+          ),
+        ],
+      );
+    });
   }
 
   Widget _buildSectionTitle(String title) {

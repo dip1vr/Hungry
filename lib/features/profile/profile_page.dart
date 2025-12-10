@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+
 import 'package:get/get.dart';
 import 'package:hungry/common/widgets/optimized_network_image.dart';
 import 'package:hungry/features/profile/controllers/profile_controller.dart';
@@ -116,7 +116,7 @@ class ProfilePage extends StatelessWidget {
                   color: Colors.orange,
                   isDestructive: true,
                   onTap: () async {
-                    await FirebaseAuth.instance.signOut();
+                    await controller.logout();
                   },
                 ),
 

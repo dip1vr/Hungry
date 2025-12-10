@@ -44,8 +44,11 @@ class CartPage extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.shopping_cart_outlined,
-                        size: 80, color: Colors.grey),
+                    const Icon(
+                      Icons.shopping_cart_outlined,
+                      size: 80,
+                      color: Colors.grey,
+                    ),
                     const SizedBox(height: 16),
                     Text(
                       "Your cart is empty",
@@ -139,11 +142,16 @@ class CartPage extends StatelessWidget {
                                   end: Alignment.bottomRight,
                                 ),
                               ),
-                              child: const Icon(Icons.remove,
-                                  color: Colors.white, size: 18),
+                              child: const Icon(
+                                Icons.remove,
+                                color: Colors.white,
+                                size: 18,
+                              ),
                             ),
-                            onPressed: () =>
-                                controller.updateQuantity(index, item["quantity"] - 1),
+                            onPressed: () => controller.updateQuantity(
+                              index,
+                              item["quantity"] - 1,
+                            ),
                           ),
                           Text(
                             "${item["quantity"]}",
@@ -166,11 +174,16 @@ class CartPage extends StatelessWidget {
                                   end: Alignment.bottomRight,
                                 ),
                               ),
-                              child: const Icon(Icons.add,
-                                  color: Colors.white, size: 18),
+                              child: const Icon(
+                                Icons.add,
+                                color: Colors.white,
+                                size: 18,
+                              ),
                             ),
-                            onPressed: () =>
-                                controller.updateQuantity(index, item["quantity"] + 1),
+                            onPressed: () => controller.updateQuantity(
+                              index,
+                              item["quantity"] + 1,
+                            ),
                           ),
                         ],
                       ),
@@ -240,10 +253,13 @@ class CartPage extends StatelessWidget {
                           colorText: Colors.black,
                         );
 
-                        Get.to(() => PlaceOrderPage(
-                              cartItems: controller.cartItems,
-                              customerId: user.uid, // ✅ Using logged-in user's UID
-                            ));
+                        Get.to(
+                          () => PlaceOrderPage(
+                            cartItems: controller.cartItems,
+                            customerId:
+                                user.uid, // ✅ Using logged-in user's UID
+                          ),
+                        );
                       },
                       child: Text(
                         "Checkout",
