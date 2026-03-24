@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:google_fonts/google_fonts.dart';
+
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:hungry/common/widgets/optimized_network_image.dart';
-import 'package:hungry/features/order/controllers/food_controller.dart';
-import 'package:hungry/features/order/order_place_page.dart';
+import 'package:hungry/shared/widgets/optimized_network_image.dart';
+import 'package:hungry/features/orders/presentation/controllers/food_controller.dart';
+import 'package:hungry/features/orders/presentation/pages/order_place_page.dart';
 
 // Brand Colors
 const kPrimaryColor = Color(0xFFFF5200);
@@ -24,12 +24,10 @@ class CartPage extends StatelessWidget {
       appBar: AppBar(
         title: Text(
           "My Cart",
-          style: GoogleFonts.poppins(
-            textStyle: const TextStyle(
-              color: Colors.black,
-              fontWeight: FontWeight.bold,
-              fontSize: 20,
-            ),
+          style: const TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
           ),
         ),
         centerTitle: true,
@@ -83,6 +81,8 @@ class CartPage extends StatelessWidget {
                           const SizedBox(height: 30),
                           _buildSectionTitle("Offers & Benefits"),
                           const SizedBox(height: 12),
+                          _buildSuggestedOffers(),
+                          const SizedBox(height: 12),
                           _buildCouponSection(),
 
                           const SizedBox(height: 30),
@@ -133,7 +133,7 @@ class CartPage extends StatelessWidget {
           const SizedBox(height: 24),
           Text(
             "Your Cart is Empty",
-            style: GoogleFonts.poppins(
+            style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.bold,
               color: Colors.black87,
@@ -143,7 +143,7 @@ class CartPage extends StatelessWidget {
           Text(
             "Looks like you haven't added\nany food yet.",
             textAlign: TextAlign.center,
-            style: GoogleFonts.poppins(
+            style: TextStyle(
               fontSize: 15,
               color: Colors.grey[500],
               height: 1.5,
@@ -164,10 +164,7 @@ class CartPage extends StatelessWidget {
             onPressed: () => Get.back(),
             child: Text(
               "Start Ordering",
-              style: GoogleFonts.poppins(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
           ),
         ],
@@ -214,7 +211,7 @@ class CartPage extends StatelessWidget {
                 children: [
                   Text(
                     item["title"],
-                    style: GoogleFonts.poppins(
+                    style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                       color: Colors.black87,
@@ -223,7 +220,7 @@ class CartPage extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     "₹${item["price"]}",
-                    style: GoogleFonts.poppins(
+                    style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
                       color: Colors.grey[700],
@@ -248,7 +245,7 @@ class CartPage extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 8),
                     child: Text(
                       "${item["quantity"]}",
-                      style: GoogleFonts.poppins(
+                      style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
                       ),
@@ -278,6 +275,275 @@ class CartPage extends StatelessWidget {
         child: Icon(icon, size: 16, color: Colors.black87),
       ),
     );
+  }
+
+  Widget _buildSuggestedOffers() {
+    return Obx(() {
+      if (controller.suggestedOffers.isEmpty ||
+          controller.appliedCouponCode.isNotEmpty) {
+        return const SizedBox.shrink();
+      }
+
+      return SizedBox(
+        height: 110,
+        child: ListView.builder(
+          scrollDirection: Axis.horizontal,
+          itemCount: controller.suggestedOffers.length,
+          itemBuilder: (context, index) {
+            final offer = controller.suggestedOffers[index];
+            final title = (offer['title'] ?? 'OFFER').toString();
+            final desc = (offer['description'] ?? '').toString();
+            final code = (offer['code'] ?? offer['couponCode'] ?? title)
+                .toString();
+            final val = offer['discountValue'];
+            final isPercent =
+                offer['discountType'] == 'percentage' ||
+                offer['discountType'] == 'percent';
+
+            String discStr = isPercent ? "$val% OFF" : "₹$val OFF";
+
+            return GestureDetector(
+              onTap: () {
+                String result = controller.applyCoupon(code);
+                if (result == "Success") {
+                  Get.snackbar(
+                    "Applied!",
+                    "'$code' applied successfully",
+                    backgroundColor: Colors.green,
+                    colorText: Colors.white,
+                    snackPosition: SnackPosition.BOTTOM,
+                    margin: const EdgeInsets.all(16),
+                  );
+                } else {
+                  Get.snackbar(
+                    "Error",
+                    result,
+                    snackPosition: SnackPosition.BOTTOM,
+                  );
+                }
+              },
+              child: Container(
+                width: 250,
+                margin: const EdgeInsets.only(right: 12, bottom: 4, top: 2),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.orange.shade100, width: 1.2),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.orange.withOpacity(0.04),
+                      blurRadius: 8,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: Stack(
+                  children: [
+                    // Small Ticket Cutouts
+                    Positioned(
+                      left: -6,
+                      top: 40,
+                      child: Container(
+                        width: 12,
+                        height: 12,
+                        decoration: BoxDecoration(
+                          color: kBgColor,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.orange.shade100),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      right: -6,
+                      top: 40,
+                      child: Container(
+                        width: 12,
+                        height: 12,
+                        decoration: BoxDecoration(
+                          color: kBgColor,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.orange.shade100),
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: Colors.orange.shade50,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.local_offer_rounded,
+                              color: kPrimaryColor,
+                              size: 20,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        title.toUpperCase(),
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w800,
+                                          color: kPrimaryColor,
+                                          letterSpacing: 0.5,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    Text(
+                                      discStr,
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.bold,
+                                        color: const Color(0xFF065F46),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                if (desc.isNotEmpty) ...[
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    desc,
+                                    style: TextStyle(
+                                      fontSize: 9,
+                                      color: Colors.grey[600],
+                                      height: 1.2,
+                                    ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                                const SizedBox(height: 4),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey[100],
+                                    borderRadius: BorderRadius.circular(4),
+                                    border: Border.all(
+                                      color: Colors.grey.shade300,
+                                      width: 0.5,
+                                    ),
+                                  ),
+                                  child: Text(
+                                    code.toUpperCase(),
+                                    style: TextStyle(
+                                      fontSize: 8,
+                                      fontWeight: FontWeight.w700,
+                                      color: Colors.black54,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                // Min Order Info
+                                Row(
+                                  children: [
+                                    Builder(
+                                      builder: (context) {
+                                        final minAmt =
+                                            offer['minOrderValue'] ??
+                                            offer['minAmount'] ??
+                                            offer['minOrder'] ??
+                                            0;
+                                        final vendorId = offer['vendorId'];
+                                        double relevantTotal =
+                                            controller.totalPrice;
+
+                                        if (vendorId != null) {
+                                          final bool isItemSpecific =
+                                              offer['isItemSpecific'] == true;
+                                          final String? itemTitle =
+                                              offer['sourceItemTitle'];
+
+                                          relevantTotal = controller.cartItems
+                                              .where((item) {
+                                                bool matchesGroup =
+                                                    item['vendorId'] ==
+                                                    vendorId;
+                                                if (isItemSpecific &&
+                                                    itemTitle != null) {
+                                                  matchesGroup =
+                                                      matchesGroup &&
+                                                      item['title'] ==
+                                                          itemTitle;
+                                                }
+                                                return matchesGroup;
+                                              })
+                                              .fold(
+                                                0.0,
+                                                (sum, item) =>
+                                                    sum +
+                                                    (item["price"] *
+                                                        item["quantity"]),
+                                              );
+                                        }
+
+                                        final isMet =
+                                            relevantTotal >= (minAmt as num);
+                                        return Row(
+                                          children: [
+                                            Icon(
+                                              isMet
+                                                  ? Icons.check_circle_rounded
+                                                  : Icons.info_outline_rounded,
+                                              size: 10,
+                                              color: isMet
+                                                  ? Colors.green
+                                                  : Colors.orange.shade300,
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              minAmt > 0
+                                                  ? "Min order: ₹$minAmt"
+                                                  : "No minimum order",
+                                              style: TextStyle(
+                                                fontSize: 9,
+                                                fontWeight: isMet
+                                                    ? FontWeight.bold
+                                                    : FontWeight.w500,
+                                                color: isMet
+                                                    ? Colors.green[700]
+                                                    : Colors.grey[600],
+                                              ),
+                                            ),
+                                          ],
+                                        );
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+      );
+    });
   }
 
   Widget _buildCouponSection() {
@@ -416,13 +682,246 @@ class CartPage extends StatelessWidget {
         ],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // 1. Unified Vendor Grouping
+          Builder(
+            builder: (context) {
+              final offer = controller.appliedOfferData.value;
+              final vendorId = offer != null ? offer['vendorId'] : null;
+
+              if (vendorId != null) {
+                // Grouping Logic
+                final vendorItems = controller.cartItems
+                    .where((i) => i['vendorId'] == vendorId)
+                    .toList();
+                final otherItems = controller.cartItems
+                    .where((i) => i['vendorId'] != vendorId)
+                    .toList();
+
+                final bool isItemSpecific = offer!['isItemSpecific'] == true;
+                final String couponCode =
+                    offer['code'] ?? controller.appliedCouponCode.value;
+
+                // Calculate Vendor Subtotal (Gross)
+                final double vendorGrossTotal = vendorItems.fold(
+                  0.0,
+                  (sum, item) =>
+                      sum + ((item['price'] ?? 0) * (item['quantity'] ?? 1)),
+                );
+                final double vendorNetTotal =
+                    vendorGrossTotal - controller.discountAmount.value;
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "OFFER APPLIED ON RESTAURANT",
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: kPrimaryColor,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.orange.withOpacity(0.05),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: Colors.orange.withOpacity(0.2),
+                        ),
+                      ),
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        children: [
+                          // Vendor Items
+                          ...vendorItems.map((item) {
+                            final bool isTargetItem =
+                                isItemSpecific &&
+                                item['title'] == offer['sourceItemTitle'];
+
+                            return Column(
+                              children: [
+                                _buildBreakdownItemRow(item),
+                                // Item Specific Discount
+                                if (isTargetItem)
+                                  Padding(
+                                    padding: const EdgeInsets.only(bottom: 8),
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          Icons.subdirectory_arrow_right,
+                                          size: 14,
+                                          color: Colors.green,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Expanded(
+                                          child: Text(
+                                            "Coin ($couponCode) applied on this item",
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.green,
+                                              fontStyle: FontStyle.italic,
+                                            ),
+                                          ),
+                                        ),
+                                        Text(
+                                          "- ₹${controller.discountAmount.value.toStringAsFixed(2)}",
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.green,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                              ],
+                            );
+                          }).toList(),
+
+                          // Restaurant Level Discount (if not item specific)
+                          if (!isItemSpecific)
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 4),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.local_offer,
+                                    size: 14,
+                                    color: Colors.green,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      "Restaurant Coupon ($couponCode)",
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        color: Colors.green,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ),
+                                  Text(
+                                    "- ₹${controller.discountAmount.value.toStringAsFixed(2)}",
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color: Colors.green,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                          const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 8),
+                            child: Divider(height: 1),
+                          ),
+
+                          // Restaurant Total
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                "Restaurant Total",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                              Text(
+                                "₹${vendorNetTotal.toStringAsFixed(2)}",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    if (otherItems.isNotEmpty) ...[
+                      const SizedBox(height: 16),
+                      Text(
+                        "OTHER ITEMS",
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      ...otherItems.map((item) => _buildBreakdownItemRow(item)),
+                    ],
+                  ],
+                );
+              } else {
+                // Standard Flat List (No vendor info or global coupon)
+                return Column(
+                  children: controller.cartItems
+                      .map((item) => _buildBreakdownItemRow(item))
+                      .toList(),
+                );
+              }
+            },
+          ),
+
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            child: Divider(color: Colors.grey[200], thickness: 1),
+          ),
+
+          // 2. Calculations
+          // Gross Total
           _buildBillRow(
             "Item Total",
             "₹${controller.totalPrice.toStringAsFixed(2)}",
           ),
+
+          // Discount
+          if (controller.discountAmount.value > 0) ...[
+            const SizedBox(height: 8),
+            Builder(
+              builder: (context) {
+                String label = "Discount";
+                final offer = controller.appliedOfferData.value;
+                if (offer != null) {
+                  if (offer['isItemSpecific'] == true) {
+                    label = "Discount (on ${offer['sourceItemTitle']})";
+                  } else if (offer['vendorId'] != null) {
+                    label = "Restaurant Discount";
+                  }
+                }
+
+                return _buildBillRow(
+                  label,
+                  "- ₹${controller.discountAmount.value.toStringAsFixed(2)}",
+                  color: Colors.green,
+                );
+              },
+            ),
+            const SizedBox(height: 8),
+            // Calculated Subtotal (Gross - Discount)
+            _buildBillRow(
+              "Subtotal",
+              "₹${(controller.totalPrice - controller.discountAmount.value).toStringAsFixed(2)}",
+              isBold: true, // Make it slightly distinct
+              fontSize: 14,
+            ),
+          ],
+
           const SizedBox(height: 12),
 
+          // Delivery
           if (controller.isFreeDelivery.value)
             _buildBillRow(
               "Delivery Fee",
@@ -438,28 +937,24 @@ class CartPage extends StatelessWidget {
             ),
 
           const SizedBox(height: 12),
+
+          // Taxes
           _buildBillRow(
             "Taxes & Charges",
             "₹${controller.taxAmount.toStringAsFixed(2)}",
           ),
 
-          if (controller.discountAmount.value > 0) ...[
-            const SizedBox(height: 12),
-            _buildBillRow(
-              "Coupon Discount",
-              "- ₹${controller.discountAmount.value.toStringAsFixed(2)}",
-              color: Colors.green,
-            ),
-          ],
-
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 16),
             child: Divider(color: Colors.grey[200], thickness: 1),
           ),
+
+          // Final Pay
           _buildBillRow(
             "To Pay",
             "₹${controller.grandTotal.toStringAsFixed(2)}",
             isBold: true,
+            fontSize: 18,
             color: kPrimaryColor,
           ),
         ],
@@ -474,14 +969,15 @@ class CartPage extends StatelessWidget {
     Color? color,
     bool isStrikethrough = false,
     String? originalValue,
+    double? fontSize,
   }) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
           label,
-          style: GoogleFonts.poppins(
-            fontSize: 15,
+          style: TextStyle(
+            fontSize: fontSize ?? (isBold ? 15 : 14),
             fontWeight: isBold ? FontWeight.bold : FontWeight.w500,
             color: Colors.black87,
           ),
@@ -491,8 +987,8 @@ class CartPage extends StatelessWidget {
             if (isStrikethrough && originalValue != null)
               Text(
                 originalValue,
-                style: GoogleFonts.poppins(
-                  fontSize: 13,
+                style: TextStyle(
+                  fontSize: (fontSize ?? 15) - 2,
                   decoration: TextDecoration.lineThrough,
                   color: Colors.grey,
                 ),
@@ -500,8 +996,8 @@ class CartPage extends StatelessWidget {
             if (isStrikethrough) const SizedBox(width: 8),
             Text(
               value,
-              style: GoogleFonts.poppins(
-                fontSize: 15,
+              style: TextStyle(
+                fontSize: fontSize ?? (isBold ? 15 : 14),
                 fontWeight: isBold ? FontWeight.bold : FontWeight.w500,
                 color: color ?? Colors.black87,
               ),
@@ -509,6 +1005,38 @@ class CartPage extends StatelessWidget {
           ],
         ),
       ],
+    );
+  }
+
+  Widget _buildBreakdownItemRow(Map<String, dynamic> item) {
+    final String name = item['title'] ?? 'Item';
+    final int qty = item['quantity'] ?? 1;
+    final double price = (item['price'] ?? 0).toDouble();
+    final double subtotal = price * qty;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            "$name x $qty",
+            style: TextStyle(
+              fontSize: 13,
+              color: Colors.grey[600],
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          Text(
+            "₹${subtotal.toStringAsFixed(2)}",
+            style: TextStyle(
+              fontSize: 13,
+              color: Colors.grey[600],
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -561,7 +1089,7 @@ class CartPage extends StatelessWidget {
                   children: [
                     Text(
                       "₹${controller.grandTotal.toStringAsFixed(0)}",
-                      style: GoogleFonts.poppins(
+                      style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
@@ -569,7 +1097,7 @@ class CartPage extends StatelessWidget {
                     ),
                     Text(
                       "TOTAL",
-                      style: GoogleFonts.poppins(
+                      style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w500,
                         color: Colors.white.withOpacity(0.8),
@@ -581,7 +1109,7 @@ class CartPage extends StatelessWidget {
                   children: [
                     Text(
                       "Place Order",
-                      style: GoogleFonts.poppins(
+                      style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,

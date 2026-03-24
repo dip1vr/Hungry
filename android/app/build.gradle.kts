@@ -8,7 +8,7 @@ plugins {
 
 android {
     namespace = "com.example.hungry"
-    compileSdk = 34  // latest compileSdk
+    compileSdk = 36  // latest compileSdk
 
     ndkVersion = "27.0.12077973" // fixed NDK version
 
@@ -23,8 +23,8 @@ android {
 
     defaultConfig {
         applicationId = "com.example.hungry"
-        minSdk = 23               // fixed minSdkVersion
-        targetSdk = 34
+        minSdk = flutter.minSdkVersion               // fixed minSdkVersion
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0"
     }

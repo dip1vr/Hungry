@@ -1,0 +1,74 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Restaurants
+    match /restaurants/{restaurantId} {
+      allow read, write: if true;
+      match /menuItems/{menuItemId} {
+        allow read, write: if true;
+      }
+    }
+
+    // Global Orders
+    match /orders/{orderId} {
+      allow read, write: if true;
+      match /items/{itemId} {
+        allow read, write: if true;
+      }
+    }
+
+    // Offers
+    match /offers/{offerId} {
+      allow read, write: if true;
+    }
+
+    // Vendor orders
+    match /vendors/{vendorId}/orders/{orderId} {
+      allow read, write: if true;
+    }
+
+    // Delivery orders
+    match /deliveryOrders/{orderId} {
+      allow read, write: if true;
+    }
+
+    // Delivery Boys
+    match /deliveryBoys/{deliveryBoyId} {
+      allow read, write: if true;
+    }
+
+    // menuItems anywhere
+    match /{path=**}/menuItems/{menuItemId} {
+      allow read, write: if true;
+    }
+
+    // USERS
+    match /users/{userId} {
+      allow read, write: if true;
+
+      // favorites
+      match /favorites/{favId} {
+        allow read, write: if true;
+      }
+
+      // ✅ USER ORDERS (CORRECT)
+      match /orders/{orderId} {
+        allow read, write: if true;
+      }
+
+      // Activity Logs (Added to fix permission error)
+      match /activity_logs/{logId} {
+        allow read, write: if true;
+      }
+      // Chats
+      match /chats/{chatId} {
+        allow read, write: if true;
+        match /messages/{messageId} {
+          allow read, write: if true;
+        }
+      }
+
+    }
+  }
+}
